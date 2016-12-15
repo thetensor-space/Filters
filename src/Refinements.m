@@ -127,7 +127,7 @@ __FindRefinementFromBimaps := function( F, Commands )
 
   while trivial and (i le #Bimaps) do
     B := Bimaps[i];
-    ChangeTensorCategory(~B,HomotopismCategory(2));
+    ChangeTensorCategory(~B,HomotopismCategory(3));
     X := Commands[j](B); // creates desired algebra
     L,M,R := __GetActionsOnModules( X, Dimension(B`Domain[1]), Dimension(B`Domain[2]), Dimension(B`Codomain), Commands[j] );
 

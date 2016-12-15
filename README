@@ -1,0 +1,8 @@
+A filters package for Magma V2.22 and beyond.
+
+Created by Joshua Maglione, Copyright 2016. GNU Public Liscence v. 3.
+
+Contents:
+
+Source Code is contained in the folder "src"
+Spec file is "./src/Filters.spec"
