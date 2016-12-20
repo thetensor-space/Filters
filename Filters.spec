@@ -7,5 +7,6 @@
   	GradedLieDefs.m
   	Refinements.m
   	GenerateFilter.m
+    AutFromDer.m
 	}
 }

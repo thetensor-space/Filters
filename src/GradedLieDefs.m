@@ -1,3 +1,10 @@
+__E := function(MS,i,j)
+  n := Nrows(MS.1);
+  m := Ncols(MS.1);
+  return MS.(m*(i-1)+j);
+end function;
+
+
 declare attributes AlgLie: GradedInfo;
 
 /* 
@@ -8,6 +15,7 @@ declare attributes AlgLie: GradedInfo;
     Bimaps . . . . . . . . . . . . . A list of the nontrivial bimaps given by the graded product of the Lie algebra.
     BimapIndices . . . . . . . . . . A list of the pair of indices for each of the bimaps in the same order as Bimaps.
     StructureConstants . . . . . . . The structure constants of the Lie algebra.
+    GradedDerivationAlgebra. . . . . A record of how the grading translates to the derivation algebra.
 */
 
 intrinsic LieAlgebra( F::Flt ) -> AlgLie, Map
@@ -35,6 +43,8 @@ intrinsic LieAlgebra( F::Flt ) -> AlgLie, Map
   gens := []; // ordered generating set for G
   spaces := [* *]; // homogeneous spaces
   maps := [* *]; // projections onto the homogeneous spaces
+  gda_rf := recformat< DerivationAlgebra : AlgMatLie, DirectSum : List, Indices : SeqEnum >;
+  gda := rec< gda_rf | >;
 
   // compute the quotients and save for later.
   for i in [1..Length(F)] do
@@ -97,7 +107,7 @@ intrinsic LieAlgebra( F::Flt ) -> AlgLie, Map
 
   // construct the Lie algebra with the graded information recorded.
   L := LieAlgebra< GF(p), n | [ [ [ SC[k][i][j] : k in [1..n] ] : j in [1..n] ] : i in [1..n] ] >;
-  rf := recformat< HomogeneousComponents : List, HomogeneousIndices : SeqEnum, Projections : List, Bimaps : List, BimapIndices : SeqEnum, StructureConstants : SeqEnum >;
+  rf := recformat< HomogeneousComponents : List, HomogeneousIndices : SeqEnum, Projections : List, Bimaps : List, BimapIndices : SeqEnum, StructureConstants : SeqEnum, GradedDerivationAlgebra : Rec >;
   homo_comp := [* VectorSpace( GF(p), Dimension(X) ) : X in spaces *];
   homo_ind := Prune(F`Indices);
   dims := [0] cat [ &+[ Dimension(spaces[i]) : i in [1..j-1] ] : j in [2..#spaces] ];
@@ -109,7 +119,8 @@ intrinsic LieAlgebra( F::Flt ) -> AlgLie, Map
                  Projections := projs,
                  Bimaps := bimaps,
                  BimapIndices := bimap_inds,
-                 StructureConstants := SC >;
+                 StructureConstants := SC,
+                 GradedDerivationAlgebra := gda >;
   L`GradedInfo := R;
 
   // construct a functor mapping the group to the Lie algebra and vice versa.
@@ -167,15 +178,12 @@ intrinsic StructureConstants( L::AlgLie ) -> SeqEnum
   return L`GradedInfo`StructureConstants;
 end intrinsic;
 
-__E := function(MS,i,j)
-  n := Nrows(MS.1);
-  m := Ncols(MS.1);
-  return MS.(m*(i-1)+j);
-end function;
-
 intrinsic GradedDerivationAlgebra( L::AlgLie ) -> AlgMatLie
 {Returns the graded derivation algebra from the given graded Lie algebra.}
   require assigned L`GradedInfo : "Cannot recognize the grading.";
+  if assigned L`GradedInfo`GradedDerivationAlgebra`DerivationAlgebra then
+    return L`GradedInfo`GradedDerivationAlgebra`DerivationAlgebra;
+  end if;
   T := Tensor(L);
   ChangeTensorCategory(~T,HomotopismCategory(3));
   D2 := Induce(DerivationAlgebra(T),2);
