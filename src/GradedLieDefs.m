@@ -177,7 +177,7 @@ intrinsic GradedDerivationAlgebra( L::AlgLie ) -> AlgMatLie
 {Returns the graded derivation algebra from the given graded Lie algebra.}
   require assigned L`GradedInfo : "Cannot recognize the grading.";
   T := Tensor(L);
-  ChangeTensorCategory(~T,HomotopismCategory(2));
+  ChangeTensorCategory(~T,HomotopismCategory(3));
   D2 := Induce(DerivationAlgebra(T),2);
   D1 := Induce(DerivationAlgebra(T),1);
   dims := [Dimension(D1),Dimension(D2)];

@@ -1,8 +1,18 @@
-A filters package for Magma V2.22 and beyond.
+A filters package for Magma V2.22 and beyond. It may require an updated version
+of the Multilinear package provided by Maglione and Wilson.
 
 Created by Joshua Maglione, Copyright 2016. GNU Public Liscence v. 3.
 
+
 Contents:
 
-Source Code is contained in the folder "src"
-Spec file is "./src/Filters.spec"
+Filters.spec  — magma specification file.
+
+src/
+	Source Code for package.
+doc/
+	Package documentation.
+examples/
+	Examples of package use.
+test/
+	Performance and debugging tests.
