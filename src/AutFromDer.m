@@ -193,13 +193,23 @@ __CentralAutos := function( G, A )
   return gens;
 end function;
 
-intrinsic PartialDeltaNaught( F::Flt ) -> GrpAut
+intrinsic PartialDeltaNaught( F::Flt, A::GrpAuto ) -> GrpAuto, AlgMatLie
+{Returns the subgroup partial Delta_0 as automorphisms and its image under D.}
+  
+end intrinsic;
+
+intrinsic OLDPartialDeltaNaught( F::Flt ) -> GrpAut
 {Returns the automorphism group of the group G = 0 @ F.}
   G := F`Object;
   p := Characteristic(BaseRing(LieAlgebra(F)));
   require pClass(G) eq 2 : "Only working for p-class 2 exponent p groups.";
   require IsPrime(Exponent(G)) : "Only working for p-class 2 exponent p groups.";
-  A := AutomorphismGroupByInvariants(G);
+  try
+    A := AutomorphismGroupByInvariants(G);
+  catch err
+    "Error with automorphism package:", err`Object;
+    A := AutomorphismGroup(G);
+  end try;
   C := __CentralAutos(G, A);
   Aut := sub< Generic(A) | A, C >;
   _ := LMGOrder( Aut );
@@ -208,10 +218,11 @@ intrinsic PartialDeltaNaught( F::Flt ) -> GrpAut
   I := MS!(Aut!1);
 
   Fit, FitPC, phi := LMGFittingSubgroup(Aut);
+  P := SylowSubgroup(FitPC, p);
   T := MS!Matrix([Eltseq(G.i @ F`Lie_Func) : i in [1..NPCgens(G)]]);
-  gens := [ T^-1*(MS!(FitPC.i @@ phi))*T - I : i in [1..NPCgens(FitPC)] ];
+  gens := [ T^-1*(MS!(P.i @@ phi))*T - I : i in [1..NPCgens(P)] ];
   domain := [ d : d in gens | IsCoercible(GD,d) ];
-  der := sub< MS | domain >;
+  der := sub< MS | [ d : d in domain | GetInducedDegree(F,d) ne [ 0 : i in [1..F`Domain] ] ] >;
   return der;
 end intrinsic;
 
@@ -306,11 +317,11 @@ intrinsic GetInducedDegree( F::Flt, d::Mtrx ) -> SeqEnum
   return __GetMin(F`Preorder, inds);
 end intrinsic;
 
-__NormalForm := function( F, s )
+__NF := function( F, s )
   return &*[ F.i^(Integers()!s[i]) : i in [1..#s] ];
 end function;
 
-intrinsic FirstApproximation( F::Flt ) -> AlgMatLie
+intrinsic NEWFirstApproximation( F::Flt ) -> AlgMatLie
 {Returns the first approximation of L(Delta F).}
   GD,X,Y := MGradedDerivationAlgebra(F);
   G := F`Object;
@@ -319,12 +330,13 @@ intrinsic FirstApproximation( F::Flt ) -> AlgMatLie
   n := #pcgs;
   p := Characteristic(BaseRing(GD));
   Fn := FreeGroup(n);
-  FP, pi := FPGroup(G);
-  alpha := hom< Fn -> FP | [<Fn.i, pcgs[i] @@ pi> : i in [1..n] ] >;
-  comms := [ ((pcgs[j],pcgs[i]) @@ (alpha*pi))*(Fn.i,Fn.j) : i in [j+1..n], j in [1..n-1] ];
-  powers := [ ((pcgs[k]^p) @@ (alpha*pi))*Fn.k^p : k in [1..n] ];
-  assert forall{ r : r in comms | r @ (alpha*pi) eq G!1 };
-  assert forall{ r : r in powers | r @ (alpha*pi) eq G!1 };
+  inc := hom< G -> Fn | [ <pcgs[i], Fn.i> : i in [1..n] ] >; // Free property
+  pi := hom< Fn -> G | [ <pcgs[i] @ inc, pcgs[i]> : i in [1..n] ] >;
+  comms := [ ((G.i,G.j)^(-1))@inc * (G.i@inc, G.j@inc) : i in [j+1..n], j in [1..n-1] ];
+  comm_inds := [ [i,j] : i in [j+1..n], j in [1..n-1] ];
+  powers := [ (G.k^(-p))@inc * (G.k@inc)^p : k in [1..n] ];
+  assert forall{ r : r in comms | r @ pi eq G!1 };
+  assert forall{ r : r in powers | r @ pi eq G!1 };
   L := LieAlgebra(F);
   PD0 := PartialDNaught(F);
   phi := F`Lie_Func;
@@ -338,8 +350,98 @@ intrinsic FirstApproximation( F::Flt ) -> AlgMatLie
   bas := [];
   for d in Basis(PD0) do
     s := GetInducedDegree(F,d);
-    ep := hom< Fn -> Fn | [ <Fn.i, Fn.i*((L.i*d) @@ (alpha*pi*phi))> : i in [1..n] ] >;
-    R_ep_pi := [ (r @ ep) @ (alpha*pi) : r in comms ];
+    ep := hom< Fn -> Fn | [ <pcgs[i]@inc, (pcgs[i]@inc)*((L.i*d) @@ phi @ inc)> : i in [1..n] ] >;
+    R_ep_pi := [ (r @ ep) @ pi : r in comms ];
+    i := 2;
+    j := 1;
+    k := 1;
+    holds := true;
+    while holds and (k le #comms) do
+      index := [ omega(i)[l] + omega(j)[l] + s[l] : l in [1..#s] ];
+      if R_ep_pi[k] notin (index @ F) then
+        i,j,k;
+        comms[k];
+        Sprintf( "[%o,%o]=%o",pcgs[i],pcgs[j],(pcgs[i],pcgs[j]) );
+        Sprintf( "[%o,%o]=%o",pcgs[i]@inc,pcgs[j]@inc,(pcgs[i],pcgs[j])@inc );
+        assert false;
+      end if;
+      holds := R_ep_pi[k] in (index @ BF);
+      k +:= 1;
+      if i eq n then
+        j +:= 1;
+        i := j+1;
+      else
+        i +:= 1;
+      end if;
+    end while;
+    if holds then
+      Append(~bas,d);
+    end if;
+  end for;
+
+  Approx := sub< PD0 | bas >;
+
+  Q := sub< PD0 | [ b : b in Basis(PD0) | b notin Approx ] >;
+  extra := [];
+  for d in Q do
+    s := GetInducedDegree(F,d);
+    ep := hom< Fn -> Fn | [ <pcgs[i]@inc, (pcgs[i]@inc)*((L.i*d) @@ (pi*phi))> : i in [1..n] ] >;
+    R_ep_pi := [ (r @ ep) @ pi : r in comms ];
+    i := 2;
+    j := 1;
+    k := 1;
+    holds := true;
+    while holds and (k le #comms) do
+      index := [ omega(i)[l] + omega(j)[l] + s[l] : l in [1..#s] ];
+      assert R_ep_pi[k] in (index @ F);
+      holds := R_ep_pi[k] in (index @ BF);
+      k +:= 1;
+      if i eq n then
+        j +:= 1;
+        i := j+1;
+      else
+        i +:= 1;
+      end if;
+    end while;
+    if holds then
+      Append(~extra,d);
+    end if;
+  end for;
+  
+  Approx2 := sub< PD0 | bas, extra >;
+  return Approx2;
+end intrinsic;
+
+
+
+intrinsic FirstApproximation( F::Flt ) -> AlgMatLie
+{Returns the first approximation of L(Delta F).}
+  GD,X,Y := MGradedDerivationAlgebra(F);
+  G := F`Object;
+  BF := BoundaryFilter(F);
+  pcgs := ExhibitingPCGS(F);
+  n := #pcgs;
+  p := Characteristic(BaseRing(GD));
+  FP, pi := FPGroup(G);
+  comms := [ __NF(FP,Eltseq((pcgs[i],pcgs[j])^-1)) * (__NF(FP,Eltseq(pcgs[i])),__NF(FP,Eltseq(pcgs[j]))) : i in [j+1..n], j in [1..n-1] ];
+  powers := [ __NF(FP,Eltseq(pcgs[k]^(-p))) * __NF(FP,Eltseq(pcgs[k]))^p : k in [1..n] ];
+  assert forall{ r : r in comms | r @ pi eq G!1 };
+  assert forall{ r : r in powers | r @ pi eq G!1 };
+  L := LieAlgebra(F);
+  PD0 := PartialDNaught(F);
+  phi := F`Lie_Func;
+  im := [];
+  for i in [1..n] do
+    assert exists(x){ x : x in F`Indices | (pcgs[i] in (x @ F)) and (pcgs[i] notin (x @ BF)) };
+    Append(~im,x);
+  end for;
+  omega := map< {1..n} -> F`Indices | [<i,im[i]> : i in [1..n]] >;
+
+  bas := [];
+  for d in Basis(PD0) do
+    s := GetInducedDegree(F,d);
+    ep := hom< FP -> FP | [ <FP.i, FP.i*((L.i*d) @@ (pi*phi))> : i in [1..n] ] >;
+    R_ep_pi := [ (r @ ep) @ pi : r in comms ];
     k := 1;
     holds := true;
     while holds and (k le #comms) do
@@ -352,8 +454,6 @@ intrinsic FirstApproximation( F::Flt ) -> AlgMatLie
     end while;
     if holds then
       Append(~bas,d);
-    else
-      "Dropped", Index(Basis(PD0),d);
     end if;
   end for;
 
@@ -363,8 +463,8 @@ intrinsic FirstApproximation( F::Flt ) -> AlgMatLie
   extra := [];
   for d in Q do
     s := GetInducedDegree(F,d);
-    ep := hom< Fn -> Fn | [ <Fn.i, Fn.i*((L.i*d) @@ (alpha*pi*phi))> : i in [1..n] ] >;
-    R_ep_pi := [ (r @ ep) @ (alpha*pi) : r in comms ];
+    ep := hom< FP -> FP | [ <FP.i, FP.i*((L.i*d) @@ (pi*phi))> : i in [1..n] ] >;
+    R_ep_pi := [ (r @ ep) @ pi : r in comms ];
     k := 1;
     holds := true;
     while holds and (k le #comms) do
@@ -387,5 +487,6 @@ end intrinsic;
 intrinsic ExhibitingPCGS( F::Flt ) -> SeqEnum
 {Returns a pcgs that fully exhibits F.}
   L := LieAlgebra(F);
-  return [ L.i @@ F`Lie_Func : i in [1..Dimension(L)] ];
+  pcgs := [ L.i @@ F`Lie_Func : i in [1..Dimension(L)] ];
+  return pcgs;
 end intrinsic;
