@@ -1,3 +1,9 @@
+/* 
+    Copyright 2016, 2017, Joshua Maglione.
+    Distributed under GNU GPLv3.
+*/
+
+
 // This file contains programs for searching through the bimaps of the associated Lie algebra to find refinements.
 
 import "FilterDefs.m" : __GetFilter;

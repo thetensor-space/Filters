@@ -1,3 +1,9 @@
+/* 
+    Copyright 2016, 2017, Joshua Maglione.
+    Distributed under GNU GPLv3.
+*/
+
+
 declare type Flt;
 declare attributes Flt: Boundary, Domain, Image, Indices, Max_Inds, Lattice, Length, Lex_Order, Lie_Alg, Lie_Func, Object, Preorder, Totally_Ordered;
 

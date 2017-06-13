@@ -1,3 +1,9 @@
+/* 
+    Copyright 2016, 2017, Joshua Maglione.
+    Distributed under GNU GPLv3.
+*/
+
+
 declare attributes AlgLie: GradedInfo;
 
 /* 
