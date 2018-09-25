@@ -39,17 +39,17 @@ import "Util.m" : __IsCyclic, __IsConjugateCyclic;
 __GetActionsOnModules := function( A, u, v, w, command )
   K := BaseRing(A);
   try
-    L := Induce(A,2);
+    L := Codomain(Induce(A,2));
   catch err
     L := sub< MatrixAlgebra(K,0) | >;
   end try;
   try
-    M := Induce(A,1);
+    M := Codomain(Induce(A,1));
   catch err
     M := sub< MatrixAlgebra(K,0) | >;
   end try;
   try
-    R := Induce(A,0);
+    R := Codomain(Induce(A,0));
   catch err
     R := sub< MatrixAlgebra(K,0) | >;
   end try;
