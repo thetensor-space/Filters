@@ -1,11 +1,8 @@
 {
 	src
 	{
-  	main
-    {
-      Constructors.m
-      Definitions.m
-      Methods.m
-    }
+    Constructors.m
+    Definitions.m
+    Methods.m
 	}
 }
