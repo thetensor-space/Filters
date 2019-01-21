@@ -38,14 +38,19 @@ end function;
 // -----------------------------------------------------------------------------
 
 intrinsic pCentralFilter( G::Grp, p::RngIntElt ) -> Flt
-{Constructs the filter from the p-central series of G on the finite commutative cyclic monoid C(c, 1), where G has p-class c.}
-  require Type(G) in {GrpMat, GrpPC, GrpPerm} : "Cannot construct p-central series.";
+{Constructs the filter from the p-central series of G on the finite commutative 
+cyclic monoid C(c, 1), where G has p-class c.}
+  require Type(G) in {GrpMat, GrpPC, GrpPerm} : 
+    "Cannot construct p-central series.";
   S := pCentralSeries(G, p);
   Dom := [CommutativeCyclicMonoid(#S, 1)];
-  S_0 := [G] cat S;
 
   filt_eval := function(x)
-    return S_0[Integer(Dom[1]!(x[1] + 1))];
+    if x[1] eq 0 then
+      return S[1];
+    else
+      return S[Integer(Dom[1]!(x[1]))];
+    end if;
   end function;
 
   PO := function(s, t)
@@ -56,7 +61,8 @@ intrinsic pCentralFilter( G::Grp, p::RngIntElt ) -> Flt
 end intrinsic;
 
 intrinsic pCentralFilter( G::Grp ) -> Flt
-{Constructs the filter from the p-central series of the p-group G on the finite commutative cyclic monoid C(c, 1), where G has p-class c.}
+{Constructs the filter from the p-central series of the p-group G on the finite 
+commutative cyclic monoid C(c, 1), where G has p-class c.}
   if Type(G) eq GrpMat and not assigned G`Order then
     ord := LMGOrder(G);
   else
@@ -83,7 +89,8 @@ intrinsic NonnegativeIntegers() -> CCMon
 end intrinsic;
 
 intrinsic CommutativeCyclicMonoid( r::RngIntElt, s::RngIntElt ) -> CCMon
-{Returns the commutative cyclic monoid C(r, s), where r is the index and s the period.}
+{Returns the commutative cyclic monoid C(r, s), where r is the index and s the 
+period.}
   require s gt 0 : "Period must be positive.";
   return __GetMonoid(r, s);
 end intrinsic;

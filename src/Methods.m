@@ -5,6 +5,8 @@
 
 
 
+import "Constructors.m" : __GetFilter;
+
 // =============================================================================
 //                                    Filters                                 
 // =============================================================================
@@ -37,6 +39,10 @@ intrinsic IsFinite( F::Flt ) -> BoolElt
   return forall{X : X in Domain(F) | IsFinite(X)};
 end intrinsic;
 
+/*
+  Eventually build a dynamic table so we don't have to continue computing 
+  s @ F, but maybe this is fine.
+*/
 intrinsic '@'( s::Tup, F::Flt ) -> .
 {Returns s @ F.}
   require #s eq #Domain(F) : "Element is not in the domain of the filter.";
@@ -45,7 +51,7 @@ intrinsic '@'( s::Tup, F::Flt ) -> .
   catch err
     error "Element is not in the domain of the filter.";
   end try;
-  return s @ (F`Map);
+  return x @ (F`Map);
 end intrinsic;
 
 intrinsic '@'( s::SeqEnum, F::Flt ) -> .
@@ -65,6 +71,42 @@ intrinsic Image( F::Flt ) -> SeqEnum
   return {s @ F : s in CP};
 end intrinsic;
 
+intrinsic Object( F::Flt ) -> .
+{Returns the object of the filter F.}
+  return F`Object;
+end intrinsic;
+
+intrinsic Preorder( F::Flt ) -> UserProgram
+{Returns the function, P, for the pre-order of the filter F. If x and y are in 
+the domain of F, then P(x, y) returns true if x is less than or equal to y.}
+  return F`Preorder;
+end intrinsic;
+
+
+
+intrinsic BoundaryFilter( F::Flt ) -> Flt
+{Returns the boundary filter of F.}
+  if assigned F`Boundary then
+    return F`Boundary;
+  end if;
+
+  filt_eval := function(x) 
+    subs := [];
+    for i in [1..#x] do
+      y := x;
+      y[i] +:= 1;
+      Append(~subs, y @ F);
+    end for;
+    return sub< Generic(Object(F)) | subs >;
+  end function;
+
+  BF := __GetFilter(Domain(F), filt_eval, Object(F), Preorder(F) : 
+    TO := F`TotallyOrdered);
+  F`Boundary := BF;
+  return BF;
+end intrinsic;
+
+
 // =============================================================================
 //                                  C.C. Monoids
 // =============================================================================
@@ -73,7 +115,8 @@ intrinsic Print( M::CCMon )
   if M`Index lt 0 then
     printf "Nonnegative integer monoid";
   else
-    printf "Commutative cyclic monoid C(%o, %o) on the set %o", M`Index, M`Period, {0..M`Index + M`Period - 1};
+    printf "Commutative cyclic monoid C(%o, %o) on the set %o", M`Index, 
+      M`Period, {0..M`Index + M`Period - 1};
   end if;
 end intrinsic;
 
@@ -108,8 +151,27 @@ intrinsic IsCoercible( M::CCMon, s::RngIntElt ) -> BoolElt
   return true, m;
 end intrinsic;
 
+intrinsic IsCoercible( M::CCMon, s::CCMonElt ) -> BoolElt
+{Returns the representative of s in M.}
+  if M eq Parent(s) then
+    return true, s;
+  end if;
+  return false, _;
+end intrinsic;
+
+intrinsic IsCoercible( M::CCMon, x::. ) -> BoolElt
+{Returns the representative of x in M.}
+  try
+    y := M!(Integers()!x);
+  catch err
+    return false, _;
+  end try;
+  return true, y;
+end intrinsic;
+
 intrinsic Set( M::CCMon ) -> SetEnum 
-{The set of representatives of the finite monoid M in the nonnegative integer monoid.}
+{The set of representatives of the finite monoid M in the nonnegative integer 
+monoid.}
   require IsFinite(M) : "Monoid must be finite";
   return {M!s : s in [0..M`Index + M`Period - 1]};
 end intrinsic;
@@ -126,6 +188,16 @@ end intrinsic;
 intrinsic 'eq'( s::CCMonElt, t::CCMonElt ) -> BoolElt
 {Decides if s and t are equal.}
   return s`Element eq t`Element;
+end intrinsic;
+
+intrinsic 'eq'( s::CCMonElt, t::RngIntElt ) -> BoolElt
+{Decides if s and t are equal.}
+  return s`Element eq t;
+end intrinsic;
+
+intrinsic 'eq'( s::RngIntElt, t::CCMonElt ) -> BoolElt
+{Decides if s and t are equal.}
+  return s eq t`Element;
 end intrinsic;
 
 intrinsic Parent( s::CCMonElt ) -> CCMon

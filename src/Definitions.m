@@ -23,8 +23,10 @@ declare attributes Flt : Boundary, Domain, Image, Indices, Map, Lattice, Length,
     LieAlg . . . . . . . . The associated Lie algebra.
     LieFunc. . . . . . . . The associated functor to the Lie algebra.
     Object . . . . . . . . The algebraic object for which this is a filter for.
-    Preorder . . . . . . . A user defined function for N^d. It acts like `less than or equal to'.
-    TotallyOrdered . . . . True/false depending if the ordering is totally ordered.
+    Preorder . . . . . . . A user defined function for N^d. It acts like `less 
+                           than or equal to'.
+    TotallyOrdered . . . . True/false depending if the ordering is totally 
+                           ordered.
 */
 
 

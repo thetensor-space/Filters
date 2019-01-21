@@ -53,7 +53,7 @@ directory containing the Filters directory,
 
 Current version: 0.1.
 
-Latest versions can be downloaded on GitHub at: <https://github.com/algeboy/Filters>
+Latest versions can be downloaded on GitHub at: <https://github.com/joshmaglione/Filters>
 
 
 ## Feedback, Bugs, and Contributions
