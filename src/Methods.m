@@ -82,8 +82,6 @@ the domain of F, then P(x, y) returns true if x is less than or equal to y.}
   return F`Preorder;
 end intrinsic;
 
-
-
 intrinsic BoundaryFilter( F::Flt ) -> Flt
 {Returns the boundary filter of F.}
   if assigned F`Boundary then
@@ -103,8 +101,11 @@ intrinsic BoundaryFilter( F::Flt ) -> Flt
   BF := __GetFilter(Domain(F), filt_eval, Object(F), Preorder(F) : 
     TO := F`TotallyOrdered);
   F`Boundary := BF;
+
   return BF;
 end intrinsic;
+
+
 
 
 // =============================================================================
@@ -175,6 +176,8 @@ monoid.}
   require IsFinite(M) : "Monoid must be finite";
   return {M!s : s in [0..M`Index + M`Period - 1]};
 end intrinsic;
+
+
 
 
 // =============================================================================
