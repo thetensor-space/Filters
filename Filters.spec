@@ -4,5 +4,7 @@
     Constructors.m
     Definitions.m
     Methods.m
+    Refine.m
+    Util.m
 	}
 }

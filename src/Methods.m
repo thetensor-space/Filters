@@ -6,6 +6,7 @@
 
 
 import "Constructors.m" : __GetFilter;
+import "Util.m" : __NextIncre;
 
 // =============================================================================
 //                                    Filters                                 
@@ -13,14 +14,15 @@ import "Constructors.m" : __GetFilter;
 intrinsic Print( F::Flt ) 
 {Print F.}
   d := #F`Domain;
-  str := Sprintf( "%o.", Type(F`Object) );
+  str_obj := Sprintf( "%o.", Type(F`Object) );
   if ISA(Type(F`Object), Grp) then
-    str := "normal subgroups of " cat str;
+    str := "normal subgroups of " cat str_obj;
   elif ISA(Type(F`Object), Alg) then
-    str := "ideals of " cat str;
+    str := "ideals of " cat str_obj;
   else
-    str := "subsets of " cat str;
+    str := "subsets of " cat str_obj;
   end if;
+
   // We suppress the finiteness of the domain in the print statement.
 	if d eq 1 then
 		printf "Filter from N into the " cat str;
@@ -45,9 +47,8 @@ end intrinsic;
 */
 intrinsic '@'( s::Tup, F::Flt ) -> .
 {Returns s @ F.}
-  require #s eq #Domain(F) : "Element is not in the domain of the filter.";
   try
-    x := [Domain(F)[i]!(s[i]) : i in [1..#s]];
+    x := Domain(F)!s;
   catch err
     error "Element is not in the domain of the filter.";
   end try;
@@ -56,7 +57,8 @@ end intrinsic;
 
 intrinsic '@'( s::SeqEnum, F::Flt ) -> .
 {Returns s @ F.}
-  return <t : t in s> @ F;
+  t := <x : x in s>;
+  return t @ F;
 end intrinsic;
 
 intrinsic '@'( s::RngIntElt, F::Flt ) -> .
@@ -89,13 +91,7 @@ intrinsic BoundaryFilter( F::Flt ) -> Flt
   end if;
 
   filt_eval := function(x) 
-    subs := [];
-    for i in [1..#x] do
-      y := x;
-      y[i] +:= 1;
-      Append(~subs, y @ F);
-    end for;
-    return sub< Generic(Object(F)) | subs >;
+    return sub< Generic(Object(F)) | [s @ F : s in __NextIncre(x)] >;
   end function;
 
   BF := __GetFilter(Domain(F), filt_eval, Object(F), Preorder(F) : 
@@ -173,7 +169,7 @@ end intrinsic;
 intrinsic Set( M::CCMon ) -> SetEnum 
 {The set of representatives of the finite monoid M in the nonnegative integer 
 monoid.}
-  require IsFinite(M) : "Monoid must be finite";
+  require IsFinite(M) : "Monoid must be finite.";
   return {M!s : s in [0..M`Index + M`Period - 1]};
 end intrinsic;
 
