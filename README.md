@@ -37,8 +37,7 @@ this program. If not, see <http://www.gnu.org/licenses/>.
 ## Installation
 
 This package requires two other packages publicly available on GitHub.
-1. eMAGma: <https://github.com/algeboy/eMAGma>
-2. StarAlge: <https://github.com/algeboy/StarAlge>
+1. StarAlge: <https://github.com/algeboy/StarAlge>
 
 Attach the spec file during a Magma run and the intrinsics will be available
 to use.  To attach the spec file run the following, where `<location>` is the 
