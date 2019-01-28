@@ -1,13 +1,40 @@
 /* 
     Copyright 2019 Joshua Maglione.
-    Distributed under GNU GPLv3.
+    Distributed under MIT License.
 */
 
 
 
 // =============================================================================
-//                                    Filters
+//                                  Filter Type
 // =============================================================================
+
+declare type Flt;
+declare attributes Flt : AlgFunc, AssAlg, Boundary, Domain, Image, Indices, Map, 
+  Lattice, Length, Object, Preorder, TotallyOrdered;
+
+/* 
+  Description of attributes:
+    AlgFunc. . . . . . . . The associated functor to the associated algebra.
+    AssAlg . . . . . . . . The associated algebra.
+    Boundary . . . . . . . The filter's boundary filter.
+    Domain . . . . . . . . A sequence of cyclic commutative monoids.
+    Image. . . . . . . . . A sequence of algebraic objects in the image.
+    Indices. . . . . . . . A sequence of indices for the image.
+    Map. . . . . . . . . . The map that evaluates the filter.
+    Lattice. . . . . . . . The lattice of the filter.
+    Length . . . . . . . . The length of the filter.
+    Object . . . . . . . . The algebraic object for which this is a filter for.
+    Preorder . . . . . . . A user defined function for N^d. It acts like `less 
+                           than or equal to'.
+    TotallyOrdered . . . . True/false depending if the ordering is totally 
+                           ordered.
+*/
+
+// =============================================================================
+//                              Filter Constructors
+// =============================================================================
+
 /*
   A filter constructor:
     M . . . The domain as a seqeunce of CCMon.
@@ -73,26 +100,4 @@ commutative cyclic monoid C(c, 1), where G has p-class c.}
   fac := Factorization(ord);
   require #fac eq 1 : "Group must be of prime-power order.";
   return pCentralFilter(G, fac[1][1]);
-end intrinsic;
-
-// =============================================================================
-//                                  C.C. Monoids
-// =============================================================================
-__GetMonoid := function(ind, per)
-  M := New(CCMon);
-  M`Index := ind;
-  M`Period := per;
-  return M;
-end function;
-
-intrinsic NonnegativeIntegers() -> CCMon
-{The monoid of nonnegative integers.}
-  return __GetMonoid(-1, 0);
-end intrinsic;
-
-intrinsic CommutativeCyclicMonoid( r::RngIntElt, s::RngIntElt ) -> CCMon
-{Returns the commutative cyclic monoid C(r, s), where r is the index and s the 
-period.}
-  require s gt 0 : "Period must be positive.";
-  return __GetMonoid(r, s);
 end intrinsic;

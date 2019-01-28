@@ -1,9 +1,11 @@
 {
 	src
 	{
-    Constructors.m
-    Definitions.m
-    Methods.m
+    Algebras.m
+    CCMMethods.m
+    CCMonoids.m
+    FilterMethods.m
+    Filters.m
     Refine.m
     Util.m
 	}

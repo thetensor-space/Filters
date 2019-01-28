@@ -1,6 +1,6 @@
 /* 
     Copyright 2019 Joshua Maglione.
-    Distributed under GNU GPLv3.
+    Distributed under MIT License.
 */
 
 
